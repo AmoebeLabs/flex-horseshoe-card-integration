@@ -53,4 +53,5 @@ jobs:
         run: |
           gh release create "${VERSION}-i" \
             flex-horseshoe-card.zip \
+            --repo AmoebeLabs/flex-horseshoe-card-integration \
             --title "${VERSION}-i"

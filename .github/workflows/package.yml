@@ -1,0 +1,56 @@
+name: Package FHS integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: FHS tag, bijvoorbeeld v5.4.5
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout integration wrapper
+        uses: actions/checkout@v5
+        with:
+          path: integration
+
+      - name: Checkout FHS
+        uses: actions/checkout@v5
+        with:
+          repository: AmoebeLabs/flex-horseshoe-card
+          ref: ${{ inputs.version }}
+          path: fhs
+
+      - name: Create package
+        run: |
+          mkdir package
+
+          cp -R integration/custom_components/flex_horseshoe_card/. package/
+
+          mkdir -p package/frontend
+          cp fhs/dist/flex-horseshoe-card.js package/frontend/
+
+          # Later bijvoorbeeld:
+          # mkdir -p package/system
+          # cp fhs/dist/fhs-system.yaml package/system/
+          #
+          # mkdir -p package/cards
+          # cp fhs/dist/fhs-card-*.yaml package/cards/
+
+          cd package
+          zip -r ../flex-horseshoe-card.zip .
+
+      - name: Create integration release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          gh release create "${VERSION}-i" \
+            flex-horseshoe-card.zip \
+            --title "${VERSION}-i"

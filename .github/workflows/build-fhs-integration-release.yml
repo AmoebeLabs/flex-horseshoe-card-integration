@@ -1,0 +1,86 @@
+name: Build FHS integration release
+
+on:
+  repository_dispatch:
+    types:
+      - fhs_release
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: FHS version/tag
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "version=${{ github.event.client_payload.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout integration wrapper
+        uses: actions/checkout@v5
+
+      - name: Checkout FHS
+        uses: actions/checkout@v5
+        with:
+          repository: AmoebeLabs/flex-horseshoe-card
+          ref: ${{ steps.version.outputs.version }}
+          path: fhs
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: fhs/package-lock.json
+
+      - name: Build FHS
+        working-directory: fhs
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build integration package
+        shell: bash
+        run: |
+          PACKAGE="$RUNNER_TEMP/fhs-package"
+
+          mkdir -p "$PACKAGE/frontend"
+          mkdir -p "$PACKAGE/system"
+          mkdir -p "$PACKAGE/cards"
+
+          cp custom_components/flex_horseshoe_card/__init__.py "$PACKAGE/"
+          cp custom_components/flex_horseshoe_card/config_flow.py "$PACKAGE/"
+          cp custom_components/flex_horseshoe_card/const.py "$PACKAGE/"
+          cp custom_components/flex_horseshoe_card/manifest.json "$PACKAGE/"
+
+          cp fhs/dist/flex-horseshoe-card.js "$PACKAGE/frontend/"
+
+          # Later:
+          # cp -R fhs/system/. "$PACKAGE/system/"
+          # cp -R fhs/cards/. "$PACKAGE/cards/"
+
+          cd "$PACKAGE"
+          zip -r "$GITHUB_WORKSPACE/flex-horseshoe-card.zip" .
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "$VERSION" \
+            flex-horseshoe-card.zip \
+            --title "$VERSION" \
+            --generate-notes

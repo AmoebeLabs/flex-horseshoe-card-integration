@@ -31,17 +31,52 @@ jobs:
         run: |
           mkdir package
 
+          # Integration wrapper
           cp -R integration/custom_components/flex_horseshoe_card/. package/
 
+          # Existing FHS build
           mkdir -p package/frontend
           cp fhs/dist/flex-horseshoe-card.js package/frontend/
 
-          # Later bijvoorbeeld:
+          # Temporarily give the integration version its own custom element
+          # so it can run alongside the normal HACS dashboard version.
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path("package/frontend/flex-horseshoe-card.js")
+          text = path.read_text()
+
+          text, get_count = re.subn(
+              r"""customElements\.get\((['"])flex-horseshoe-card\1\)""",
+              lambda m: f"customElements.get({m.group(1)}flex-horseshoe-card-i{m.group(1)})",
+              text,
+          )
+
+          text, define_count = re.subn(
+              r"""customElements\.define\((['"])flex-horseshoe-card\1,""",
+              lambda m: f"customElements.define({m.group(1)}flex-horseshoe-card-i{m.group(1)},",
+              text,
+          )
+
+          if get_count == 0:
+              raise RuntimeError("customElements.get('flex-horseshoe-card') not found")
+
+          if define_count == 0:
+              raise RuntimeError("customElements.define('flex-horseshoe-card', ...) not found")
+
+          print(f"Changed {get_count} customElements.get registration(s)")
+          print(f"Changed {define_count} customElements.define registration(s)")
+
+          path.write_text(text)
+          PY
+
+          # Later:
           # mkdir -p package/system
-          # cp fhs/dist/fhs-system.yaml package/system/
+          # cp -R fhs/system/. package/system/
           #
           # mkdir -p package/cards
-          # cp fhs/dist/fhs-card-*.yaml package/cards/
+          # cp -R fhs/cards/. package/cards/
 
           cd package
           zip -r ../flex-horseshoe-card.zip .

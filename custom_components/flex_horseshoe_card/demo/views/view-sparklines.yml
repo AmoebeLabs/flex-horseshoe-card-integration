@@ -1,0 +1,37 @@
+title: FHS-sparklines
+path: FHS-sparklines
+panel: true
+
+cards:
+  - type: vertical-stack
+    cards:
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+
+          - type: custom:flex-horseshoe-card-i
+            entities:
+              - entity: __FHS_TEMPERATURE__
+            template:
+              name: fhs_card_sensor_history_min_avg_max
+              variables:
+                - var_colorstop: fhs_colorstops_awair_temperature
+                - var_show_chart_type: equalizer
+
+          - type: custom:flex-horseshoe-card-i
+            entities:
+              - entity: __FHS_HUMIDITY__
+            template:
+              name: fhs_card_sensor_history_min_avg_max
+              variables:
+                - var_colorstop: fhs_colorstops_awair_humidity
+                - var_show_chart_type: dots
+
+          - type: custom:flex-horseshoe-card-i
+            entities:
+              - entity: __FHS_ENERGY__
+            template:
+              name: fhs_card_sensor_history_min_avg_max
+              variables:
+                - var_colorstop: fhs_colorstops_energy_deliverd_4kw

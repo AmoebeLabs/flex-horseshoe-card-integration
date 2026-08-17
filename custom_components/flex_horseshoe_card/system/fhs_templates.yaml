@@ -1,0 +1,31 @@
+#
+# File      : fhs_templates.yaml
+# Project   : Home Assistant
+# Repository: https://github.com/AmoebeLabs/Home-Assistant-Config
+#
+# Author: Mars @ AmoebeLabs.com
+# 
+# License: CC BY-SA, https://creativecommons.org/licenses/by/4.0/
+#
+# -----
+# Description:
+#   Flexible Horesshoe Card template yaml file
+#   
+#
+# All the FHS defined CSS stuff, containing:
+# - Toolset and Tools definitions
+# - CSS Animations
+# - CSS Filters
+#
+###############################################################################
+
+# FHS Templates include
+# - colorstops
+# - derived JS functions
+# - layouts of full cards
+# - material 3 themes
+# - swatches
+# - toolsets
+#
+#==============================================================================
+templates: !include_dir_merge_named templates

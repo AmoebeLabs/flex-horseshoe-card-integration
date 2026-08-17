@@ -1,0 +1,32 @@
+fhs_colorstops_energy_deliverd_4kw:
+  template:
+    type: colorstops
+    defaults:
+      - fhs_colorstops_gap : 1
+  colorstops:
+    gap: '[[fhs_colorstops_gap]]'
+    scales:
+      default:
+        min: 0
+        max: 4.000
+    colors:
+      - value: 0.0
+        color: 'darkgreen'
+      - value: 0.150
+        color: 'green'
+      - value: 0.300
+        color: '#FFE37F'  # Yasmine
+      - value: 0.500
+        color: '#FCC449'  # Saffron
+      - value: 1.000
+        color: '#F79F23'  # Orange Peel
+      - value: 1.500
+        color: '#EF7F01'  # Tangerine
+      - value: 2.000
+        color: '#E73F10'  # Cinnabar
+      - value: 2.500
+        color: '#BB1B1B'  # Cornell Red
+      - value: 3.000
+        color: '#980C0C'  # Pennu Red
+      - value: 4.000
+        color: '#7B0002'  # Barn Red      

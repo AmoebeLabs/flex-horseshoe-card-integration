@@ -1,5 +1,5 @@
 fhs_sys_templates:
-  !include custom_components/flex_horseshoe_card/system/fhs_system_templates.yaml
+  !include custom_components/flex_horseshoe_card/system/fhs_templates.yaml
 
 title: FHS Demo Cards
 

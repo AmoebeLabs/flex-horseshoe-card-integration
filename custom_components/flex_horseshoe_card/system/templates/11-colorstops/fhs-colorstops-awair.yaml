@@ -1,0 +1,190 @@
+fhs_colorstops_awair_score:
+  template:
+    type: color_stops
+  color_stops:
+    colors:
+      - value: 0
+        color: '#7e39d6'
+        rank: 4
+      - value: 19.5
+        color: '#e9343d'
+        rank: 3
+      - value: 39.5
+        color: '#f98602'
+        rank: 2
+      - value: 59.5
+        color: '#fed125'
+        rank: 1
+      - value: 79.5
+        color: '#49ce4b'
+        rank: 0
+
+
+fhs_colorstops_awair_co2:
+  template:
+    type: color_stops
+    defaults:
+      - fhs_colorstop_scale: default
+      - fhs_colorstop_scale_min: 0
+      - fhs_colorstop_scale_max: 5000
+  color_stops:
+    scales:
+      default:
+        min: 0
+        max: 5000
+    colors:
+      - value: 400
+        color: '#49ce4b'
+        rank: 0
+      - value: 600
+        color: '#fed125'
+        rank: 1
+      - value: 1000
+        color: '#f98602'
+        rank: 2
+      - value: 2000
+        color: '#e9343d'
+        rank: 3
+      - value: 4500
+        color: '#7e39d6'
+        rank: 4
+
+fhs_colorstops_awair_temperature:
+  template:
+    type: color_stops
+    defaults:
+      - fhs_colorstop_scale: default
+      - fhs_colorstop_scale_min: 0
+      - fhs_colorstop_scale_max: 35
+  color_stops:
+    scales:
+      default:
+        min: 0
+        max: 35
+    colors:
+      - value: -1000
+        color: '#7e39d6'    # Purple
+        rank: 4
+      - value:  8
+        color: '#e9343d'    # Red
+        rank: 3
+      - value: 16
+        color: '#f98602'    # Orange
+        rank: 2
+      - value: 18
+        color: '#fed125'    # Yellow
+        rank: 1
+      - value: 20
+        color: '#49ce4b'    # Green
+        rank: 0
+      - value: 25.001
+        color: '#fed125'    # Yellow
+        rank: 1
+      - value: 27.001
+        color: '#f98602'    # Orange
+        rank: 2
+      - value: 29.001
+        color: '#e9343d'    # Red
+        rank: 3
+      - value: 34.001
+        color: '#7e39d6'    # Purple
+        rank: 4
+    
+fhs_colorstops_awair_humidity:
+  template:
+    type: color_stops
+    defaults:
+      - fhs_colorstop_scale: default
+      - fhs_colorstop_scale_min: 0
+      - fhs_colorstop_scale_max: 100
+  color_stops:
+    scales:
+      default:
+        min: 0
+        max: 100  
+    colors:
+      - value: 0
+        color: '#7e39d6'
+        rank: 4
+      - value: 14.50
+        color: '#e9343d'
+        rank: 3
+      - value: 22.5
+        color: '#f98602'
+        rank: 2
+      - value: 29.50
+        color: '#fed125'
+        rank: 1
+      - value: 39.50
+        color: '#49ce4b'
+        rank: 0
+      - value: 49.50
+        color: '#fed125'
+        rank: 1
+      - value: 59.50
+        color: '#f98602'
+        rank: 2
+      - value: 64.50
+        color: '#e9343d'
+        rank: 3
+      - value: 79.50
+        color: '#7e39d6'
+        rank: 4
+
+fhs_colorstops_awair_voc:
+  template:
+    type: color_stops
+    defaults:
+      - fhs_colorstop_scale: default
+      - fhs_colorstop_scale_min: 0
+      - fhs_colorstop_scale_max: 26000
+  color_stops:
+    scales:
+      default:
+        min: 0
+        max: 26000  
+    colors:
+      - value: 0
+        color: '#49ce4b'
+        rank: 0
+      - value: 300
+        color: '#fed125'
+        rank: 1
+      - value: 500
+        color: '#f98602'
+        rank: 2
+      - value: 3000
+        color: '#e9343d'
+        rank: 3
+      - value: 25000
+        color: '#7e39d6'
+        rank: 4
+
+fhs_colorstops_awair_pm25:
+  template:
+    type: color_stops
+    defaults:
+      - fhs_colorstop_scale: default
+      - fhs_colorstop_scale_min: 0
+      - fhs_colorstop_scale_max: 200
+  color_stops:
+    scales:
+      default:
+        min: 0
+        max: 200  
+    colors:
+      - value: 0
+        color: '#49ce4c'
+        rank: 0
+      - value: 12
+        color: '#fed125'
+        rank: 1
+      - value: 35
+        color: '#f98502'
+        rank: 2
+      - value: 55
+        color: '#e9343d'
+        rank: 3
+      - value: 150
+        color: '#7e39d6'
+        rank: 4  

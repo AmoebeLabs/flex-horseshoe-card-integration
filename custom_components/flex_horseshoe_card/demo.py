@@ -26,19 +26,25 @@ def generate_demo(
     target: Path,
     options: dict,
 ) -> None:
-    """Copy the demo dashboard and replace entity placeholders."""
+    """Generate the demo dashboard."""
 
-    # The generated demo directory belongs to FHS.
-    # Always recreate it so removed/renamed demo files don't remain behind.
+    # Remove the previously generated demo completely.
+    # This also removes views that no longer exist in a newer release.
     if target.exists():
         shutil.rmtree(target)
 
-    # Copy the complete demo dashboard:
-    # dashboard.yaml + all views + any other files.
+    # Copy the complete demo directory from the integration package.
     shutil.copytree(source, target)
 
-    # Walk through every YAML file recursively.
-    # This includes dashboard.yaml and every view in subdirectories.
+    # Process every YAML file recursively.
+    #
+    # This includes:
+    #   dashboard.yaml
+    #   views/view-horseshoes.yml
+    #   views/view-electricity.yml
+    #   views/anything-else.yml
+    #
+    # Subdirectories do not matter.
     for file in target.rglob("*"):
         if not file.is_file():
             continue
@@ -48,7 +54,8 @@ def generate_demo(
 
         text = file.read_text(encoding="utf-8")
 
-        # Replace every occurrence of every configured entity placeholder.
+        # Replace all entity placeholders with the entities selected
+        # by the user in the Home Assistant config/options flow.
         for placeholder, option_name in PLACEHOLDERS.items():
             entity_id = options.get(option_name)
 
@@ -62,3 +69,10 @@ def generate_demo(
             text,
             encoding="utf-8",
         )
+
+
+def remove_demo(target: Path) -> None:
+    """Remove the generated demo dashboard."""
+
+    if target.exists():
+        shutil.rmtree(target)

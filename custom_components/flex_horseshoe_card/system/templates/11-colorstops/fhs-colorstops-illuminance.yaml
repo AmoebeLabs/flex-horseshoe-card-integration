@@ -1,0 +1,31 @@
+fhs_colorstops_illuminance:
+  template:
+    type: colorstops
+    defaults:
+      - dummy: 0
+  colorstops:
+    scales:
+      default:
+        min: 0
+        max: 5000
+    colors:
+      - value: 0001
+        color: '#20CEFE'    # Vivid Sky Blue
+      - value: 0150
+        color: '#01BAEF'    # Process Cyan
+      - value: 0300
+        color: '#168CCE'    # Blue (NCS)
+      - value: 0500
+        color: '#2B5EAD'    # Denim
+      - value: 1000
+        color: '#36479D'    # Marian Blue
+      - value: 2000
+        color: '#B263BF'    # Amythyst
+      - value: 2500
+        color: '#9249A2'    # Purpureus
+      - value: 3000
+        color: '#722E84'    # Eminence
+      - value: 3500
+        color: '#641978'    # Eminence
+      - value: 4000
+        color: '#540269'    # Indigo

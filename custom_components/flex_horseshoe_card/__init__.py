@@ -11,10 +11,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
-    DOMAIN,
-    FRONTEND_PATH,
-    FRONTEND_FILE,
     CONF_DEMO_DASHBOARD,
+    DEMO_SOURCE_DIR,
+    DEMO_TARGET_DIR,
+    DOMAIN,
+    FRONTEND_FILE,
+    FRONTEND_PATH,
 )
 from .demo import (
     generate_demo,
@@ -60,11 +62,11 @@ async def async_setup_entry(
     )
 
     # Demo source delivered inside the integration ZIP.
-    demo_source = integration_path / "demo"
+    demo_source = integration_path / DEMO_SOURCE_DIR
 
-    # Generated demo owned by FHS.
+    # Generated demo dashboard under the Home Assistant config directory.
     demo_target = Path(
-        hass.config.path("fhs_demo")
+        hass.config.path(DEMO_TARGET_DIR)
     )
 
     # Generate or remove the demo depending on the integration option.

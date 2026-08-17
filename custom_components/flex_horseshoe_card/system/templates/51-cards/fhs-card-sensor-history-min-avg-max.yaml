@@ -1,0 +1,264 @@
+fhs_card_sensor_history_min_avg_max:
+  template:
+    type: card
+    defaults:
+      - var_colorstop: fhs_colorstops_awair_temperature
+      - var_show_chart_type: area
+      - var_show_chart_variant: none
+      - var_show_chart_viz: rice_grain
+      - var_period_hours: 300 #8
+      - var_period_bins_per_hour: 0.25 #12
+
+  card:
+    dev:
+      performance: false
+      fakeData: false
+    default_entities:
+      - entity: fhs_sparkline.sensor_history_min
+      - entity: fhs_sparkline.sensor_history_avg
+      - entity: fhs_sparkline.sensor_history_max
+      - entity: fhs_sparkline.sensor_history_min_time
+      - entity: fhs_sparkline.sensor_history_max_time
+    constants:
+      ypos_minavgmax: 45
+      xpos_columnmin: 20
+      xpos_columnavg: 50
+      xpos_columnmax: 80
+      ypos_time: 57
+      radius0: 5000
+      duration_hours: '[[var_period_hours]]'
+      tick_intervals: 8
+      ypos_title: 7.5
+      ypos_separator: 32
+
+    layout:
+      gradients:
+        temp-history:
+          type: linear
+          x2: 100
+          y2: 0
+          stops:
+            - offset: 0
+              color: '#1e88e5'
+            - offset: 10
+              color: '#fdd835'
+            - offset: 20
+              color: '#e53935'
+
+      groups:
+        - id: min
+          xpos: calc(xpos_columnmin)
+          ypos: calc(ypos_minavgmax)
+          # ypos: |
+          #   [[[ return constants.ypos_minavgmax + Math.floor(Math.random() * 6); ]]]
+        - id: avg
+          xpos: calc(xpos_columnavg)
+          ypos: calc(ypos_minavgmax)
+        - id: max
+          xpos: calc(xpos_columnmax)
+          ypos: calc(ypos_minavgmax)
+
+      lines:
+        - id: separator
+          orientation: horizontal
+          xpos: 50
+          ypos: calc(ypos_separator)
+          length: 85
+          styles:
+            - stroke: var(--disabled-text-color)
+            - stroke-width: 1
+            - opacity: 0.4
+
+        - id: minavg
+          orientation: vertical
+          xpos: 35
+          ypos: calc(ypos_minavgmax)
+          length: 15
+          styles:
+            - stroke: var(--disabled-text-color)
+            - stroke-width: 1
+            - opacity: 0.4
+        - id: avgmax
+          orientation: vertical
+          same_as: minavg
+          same_as_dxpos: 30
+
+      sparklines:
+        - id: sensor_history
+          entity_index: 0
+          # After calulating full widht of sparkline, including
+          # axis and labels, corredt xpos (center) and width
+          xpos: 50 #52.5
+          ypos: 77.5 #75
+          width: 90 #85 #80
+          height: 37.5 #30
+          margin: 0
+          animate: true
+          period:
+            type: rolling_window #calendar #rolling_window
+            rolling_window:
+              duration:
+                hour: calc(duration_hours)
+              bins:
+                per_hour: '[[var_period_bins_per_hour]]'
+            calendar:
+              offset: 0
+              duration:
+                hour: calc(duration_hours)
+              bins:
+                per_hour: '[[var_period_bins_per_hour]]'
+          sparkline:
+            animate: true
+            show:
+              chart_type: '[[var_show_chart_type]]'
+              chart_variant: '[[var_show_chart_variant]]'
+              chart_viz: '[[var_show_chart_viz]]'
+              line: true
+              area: true
+              grid: true
+              axis: true
+              tickmarks: true
+              labels: true
+              xlabels_at: ticks_major
+              ylabels_at: ticks_major
+              fill: fade
+              points: false
+            bar:
+              line_width : 0.1  # To prevent two colors around zero y axis
+            area:
+              show_minmax: true
+            dots:
+              radius: 1
+            equalizer:
+              square: false
+            line:
+              show_dots: false #true #false
+              line_width : 1
+              styles:
+                stroke-width: 1
+            colorstops_transition: smooth
+            color_stops:
+              template:
+                name: '[[var_colorstop]]'
+          x_axis:
+            labels:
+              styles:
+                - font-size: 0.5em
+          y_axis:
+            labels:
+              styles:
+                - font-size: 0.5em
+
+
+          area:
+            styles:
+              - opacity: 0.3
+          line:
+            styles:
+              - stroke: var(--primary-text-color)
+              - stroke-width: 1.5
+              - stroke-linecap: round
+              - stroke-linejoin: round
+              - fill: none
+
+      rectangles:
+        - id: min_time
+          group: min
+          fit:
+            section: states
+            item_id: min_time
+          radius: 6
+          styles:
+            opacity: 0.3
+            fill: '#3498db' # '#0d47a1'
+
+        - id: max_time
+          same_as: min_time
+          group: max
+          fit:
+            item_id: max_time
+          styles:
+            opacity: 0.3
+            fill: orange
+      states:
+        - id: temperature
+          entity_index: 0
+          xpos: 50
+          ypos: calc(ypos_title + (ypos_separator - ypos_title) / 2)
+          show:
+            item_style: colorstop
+          styles:
+            - font-size: 1.4em
+            - text-anchor: middle
+            - font-weight: bold
+            - alignment-baseline: central
+          color_stops:
+            template:
+              name: '[[var_colorstop]]'
+        - id: min
+          entity: fhs_sparkline.sensor_history_min
+          group: min
+          xpos: 50
+          ypos: 50
+          styles:
+            - font-size: 0.8em
+            - font-weight: bold
+            - fill: '#3498db' # '#0d47a1' 
+            - alignment-baseline: central
+        - id: avg 
+          entity: fhs_sparkline.sensor_history_avg
+          group: avg
+          same_as: min
+          styles:
+            - fill: var(--primary-text-color)
+
+        - id: max
+          entity: fhs_sparkline.sensor_history_max
+          group: max
+          same_as: min
+          styles:
+            - fill: orange
+
+        - id: min_time
+          entity: fhs_sparkline.sensor_history_min_time
+          group: min
+          xpos: 50
+          ypos: calc(ypos_time)
+          styles:
+            - font-size: 0.5em
+            - alignment-baseline: central
+        - id: max_time
+          entity: fhs_sparkline.sensor_history_max_time
+          group: max
+          same_as: min_time
+
+      names:
+        - entity_index: 0
+          xpos: 50
+          ypos: 7.5
+          ellipsis: 25
+          styles:
+            - font-size: 1em
+            - text-anchor: middle
+            - text-transform: none
+            - fill: var(--primary-text-color)
+
+        - id: min
+          entity: fhs_sparkline.sensor_history_min
+          group: min
+          xpos: 50
+          ypos: 43
+          styles:
+            font-size: 0.5em
+            text-transform: capitalize     
+            alignment-baseline: central
+
+        - id: avg
+          entity: fhs_sparkline.sensor_history_avg
+          group: avg
+          same_as: min
+
+        - id: max
+          entity: fhs_sparkline.sensor_history_max
+          group: max
+          same_as: min  

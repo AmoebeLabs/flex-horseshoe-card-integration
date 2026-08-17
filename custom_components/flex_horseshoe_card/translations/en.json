@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Flex Horseshoe Card",
+        "description": "Configure the optional FHS demo dashboard.",
+        "data": {
+          "demo_dashboard": "Create FHS demo dashboard"
+        }
+      },
+      "demo_entities": {
+        "title": "Demo entities",
+        "description": "Select existing Home Assistant entities for the FHS examples.",
+        "data": {
+          "temperature_entity": "Temperature",
+          "humidity_entity": "Humidity",
+          "energy_entity": "Energy (kWh)",
+          "battery_entity": "Battery",
+          "switch_entity": "Switch or light"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "FHS demo dashboard",
+        "data": {
+          "demo_dashboard": "Create FHS demo dashboard"
+        }
+      },
+      "demo_entities": {
+        "title": "Demo entities",
+        "data": {
+          "temperature_entity": "Temperature",
+          "humidity_entity": "Humidity",
+          "energy_entity": "Energy (kWh)",
+          "battery_entity": "Battery",
+          "switch_entity": "Switch or light"
+        }
+      }
+    }
+  }
+}

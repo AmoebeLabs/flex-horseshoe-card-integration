@@ -1,3 +1,5 @@
+"""Constants for Flex Horseshoe Card."""
+
 DOMAIN = "flex_horseshoe_card"
 
 FRONTEND_PATH = "/fhs"

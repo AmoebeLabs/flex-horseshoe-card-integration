@@ -1,3 +1,5 @@
+"""Flex Horseshoe Card integration."""
+
 from pathlib import Path
 
 from homeassistant.components.frontend import (
@@ -8,7 +10,16 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN, FRONTEND_FILE, FRONTEND_PATH
+from .const import (
+    DOMAIN,
+    FRONTEND_PATH,
+    FRONTEND_FILE,
+    CONF_DEMO_DASHBOARD,
+)
+from .demo import (
+    generate_demo,
+    remove_demo,
+)
 
 
 async def async_setup_entry(
@@ -22,6 +33,11 @@ async def async_setup_entry(
 
     data = hass.data.setdefault(DOMAIN, {})
 
+    # Register the integration frontend directory once.
+    #
+    # /fhs/flex-horseshoe-card.js
+    # maps to:
+    # custom_components/flex_horseshoe_card/frontend/flex-horseshoe-card.js
     if not data.get("static_registered"):
         await hass.http.async_register_static_paths(
             [
@@ -32,11 +48,38 @@ async def async_setup_entry(
                 )
             ]
         )
+
         data["static_registered"] = True
 
+    # Load FHS automatically in the Home Assistant frontend.
     frontend_url = f"{FRONTEND_PATH}/{FRONTEND_FILE}"
 
-    add_extra_js_url(hass, frontend_url)
+    add_extra_js_url(
+        hass,
+        frontend_url,
+    )
+
+    # Demo source delivered inside the integration ZIP.
+    demo_source = integration_path / "demo"
+
+    # Generated demo owned by FHS.
+    demo_target = Path(
+        hass.config.path("fhs_demo")
+    )
+
+    # Generate or remove the demo depending on the integration option.
+    if entry.options.get(CONF_DEMO_DASHBOARD, False):
+        await hass.async_add_executor_job(
+            generate_demo,
+            demo_source,
+            demo_target,
+            dict(entry.options),
+        )
+    else:
+        await hass.async_add_executor_job(
+            remove_demo,
+            demo_target,
+        )
 
     return True
 
@@ -49,6 +92,9 @@ async def async_unload_entry(
 
     frontend_url = f"{FRONTEND_PATH}/{FRONTEND_FILE}"
 
-    remove_extra_js_url(hass, frontend_url)
+    remove_extra_js_url(
+        hass,
+        frontend_url,
+    )
 
     return True

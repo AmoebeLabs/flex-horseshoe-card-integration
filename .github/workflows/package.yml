@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: FHS tag, bijvoorbeeld v5.4.5
+        description: FHS tag, bijvoorbeeld v5.4.7-dev.26
         required: true
 
 permissions:
@@ -27,56 +27,45 @@ jobs:
           ref: ${{ inputs.version }}
           path: fhs
 
+      - name: Determine package version
+        shell: bash
+        run: |
+          FHS_VERSION=$(jq -r '.version' fhs/package.json)
+          INTEGRATION_VERSION=$(jq -r '.version' integration/custom_components/flex_horseshoe_card/manifest.json)
+
+          PACKAGE_VERSION="${FHS_VERSION}.--iv.${INTEGRATION_VERSION}"
+
+          echo "FHS version:         ${FHS_VERSION}"
+          echo "Integration version: ${INTEGRATION_VERSION}"
+          echo "Package version:     ${PACKAGE_VERSION}"
+
+          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> "$GITHUB_ENV"
+
       - name: Create package
+        shell: bash
         run: |
           mkdir package
 
-          # Integration wrapper
+          # Integration wrapper.
           cp -R integration/custom_components/flex_horseshoe_card/. package/
 
-          # Existing FHS build
+          # FHS frontend.
           mkdir -p package/frontend
           cp fhs/dist/flex-horseshoe-card.js package/frontend/
 
-          # Temporarily give the integration version its own custom element
-          # so it can run alongside the normal HACS dashboard version.
-          python - <<'PY'
-          from pathlib import Path
-          import re
+          # FHS demo dashboard sources.
+          mkdir -p package/demo
+          cp -R fhs/demo/. package/demo/
 
-          path = Path("package/frontend/flex-horseshoe-card.js")
-          text = path.read_text()
+          # The source manifest keeps the real integration version.
+          # Only the packaged manifest gets the combined release version.
+          jq \
+            --arg version "${PACKAGE_VERSION}" \
+            '.version = $version' \
+            package/manifest.json \
+            > package/manifest.tmp.json
 
-          text, get_count = re.subn(
-              r"""customElements\.get\((['"])flex-horseshoe-card\1\)""",
-              lambda m: f"customElements.get({m.group(1)}flex-horseshoe-card-i{m.group(1)})",
-              text,
-          )
-
-          text, define_count = re.subn(
-              r"""customElements\.define\((['"])flex-horseshoe-card\1,""",
-              lambda m: f"customElements.define({m.group(1)}flex-horseshoe-card-i{m.group(1)},",
-              text,
-          )
-
-          if get_count == 0:
-              raise RuntimeError("customElements.get('flex-horseshoe-card') not found")
-
-          if define_count == 0:
-              raise RuntimeError("customElements.define('flex-horseshoe-card', ...) not found")
-
-          print(f"Changed {get_count} customElements.get registration(s)")
-          print(f"Changed {define_count} customElements.define registration(s)")
-
-          path.write_text(text)
-          PY
-
-          # Later:
-          # mkdir -p package/system
-          # cp -R fhs/system/. package/system/
-          #
-          # mkdir -p package/cards
-          # cp -R fhs/cards/. package/cards/
+          mv package/manifest.tmp.json package/manifest.json
 
           cd package
           zip -r ../flex-horseshoe-card.zip .
@@ -84,9 +73,8 @@ jobs:
       - name: Create integration release
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.version }}
         run: |
-          gh release create "${VERSION}-i" \
+          gh release create "v${PACKAGE_VERSION}" \
             flex-horseshoe-card.zip \
             --repo AmoebeLabs/flex-horseshoe-card-integration \
-            --title "${VERSION}-i"
+            --title "v${PACKAGE_VERSION}"

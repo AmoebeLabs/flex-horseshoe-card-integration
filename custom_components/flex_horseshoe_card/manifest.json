@@ -1,7 +1,7 @@
 {
   "domain": "flex_horseshoe_card",
   "name": "Flex Horseshoe Card",
-  "version": "0.1c",
+  "version": "0.1d",
   "documentation": "https://flexible-horseshoe-card-manual.amoebelabs.com",
   "issue_tracker": "https://github.com/AmoebeLabs/flex-horseshoe-card/issues",
   "codeowners": [

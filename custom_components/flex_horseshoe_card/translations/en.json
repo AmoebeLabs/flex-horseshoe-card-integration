@@ -17,14 +17,22 @@
         "data": {
           "temperature_entity": "Temperature sensor",
           "humidity_entity": "Humidity sensor",
-          "power_entity": "Power sensor",
+          "pressure_entity": "Pressure sensor",
+          "power_entity_1": "Power sensor 1",
+          "power_entity_2": "Power sensor 2",
+          "power_entity_3": "Power sensor 3",
+          "power_entity_4": "Power sensor 4",
           "battery_entity": "Battery sensor",
           "switch_entity": "Switch or light"
         },
         "data_description": {
-          "temperature_entity": "Used by temperature and history examples.",
-          "humidity_entity": "Used by humidity and history examples.",
-          "power_entity": "Used by power-related examples.",
+          "temperature_entity": "Used by temperature, weather and history examples.",
+          "humidity_entity": "Used by humidity, weather and history examples.",
+          "pressure_entity": "Used by pressure, weather and history examples.",
+          "power_entity_1": "Used by power-related examples.",
+          "power_entity_2": "Used by power-related examples.",
+          "power_entity_3": "Used by power-related examples.",
+          "power_entity_4": "Used by power-related examples.",
           "battery_entity": "Used by battery examples.",
           "switch_entity": "Used by interactive switch and light examples."
         }

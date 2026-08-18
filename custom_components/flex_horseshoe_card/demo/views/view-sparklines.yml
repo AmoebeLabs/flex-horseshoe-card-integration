@@ -7,6 +7,8 @@ sections:
   - type: grid
     cards:
       - type: custom:flex-horseshoe-card-i
+        grid_options:
+          columns: 6
         entities:
           - entity: __FHS_TEMPERATURE__
         template:
@@ -16,6 +18,8 @@ sections:
             - var_show_chart_type: equalizer
 
       - type: custom:flex-horseshoe-card-i
+        grid_options:
+          columns: 6
         entities:
           - entity: __FHS_HUMIDITY__
         template:
@@ -25,9 +29,22 @@ sections:
             - var_show_chart_type: dots
 
       - type: custom:flex-horseshoe-card-i
+        grid_options:
+          columns: 6
         entities:
-          - entity: __FHS_ENERGY__
+          - entity: __FHS_POWER_1__
         template:
           name: fhs_card_sensor_history_min_avg_max
           variables:
             - var_colorstop: fhs_colorstops_energy_deliverd_4kw
+
+      - type: custom:flex-horseshoe-card-i
+        grid_options:
+          columns: 6
+        entities:
+          - entity: __FHS_POWER_2__
+        template:
+          name: fhs_card_sensor_history_min_avg_max
+          variables:
+            - var_colorstop: fhs_colorstops_energy_deliverd_4kw
+            - var_show_chart_type: bar

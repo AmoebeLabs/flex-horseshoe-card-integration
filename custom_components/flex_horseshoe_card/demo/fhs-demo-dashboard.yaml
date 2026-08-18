@@ -1,8 +1,8 @@
 fhs_sys_templates:
-  !include custom_components/flex_horseshoe_card/system/fhs_templates.yaml
+  !include ../system/fhs_templates.yaml
 
 title: FHS Demo Cards
 
 views:
-  - !include fhs_demo/views/view-horseshoes.yml
-  - !include fhs_demo/views/view-electricity.yml
+  - !include views/view-horseshoes.yml
+  - !include views/view-electricity.yml

@@ -8,7 +8,6 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.websocket_api import ActiveConnection
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util.yaml import load_yaml_dict
 
 from .const import (
@@ -63,7 +62,7 @@ async def websocket_demo_dashboard(
     connection: ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Return the generated FHS demo dashboard."""
+    """Return the cached FHS demo dashboard."""
 
     data = hass.data.get(DOMAIN, {})
 
@@ -75,32 +74,13 @@ async def websocket_demo_dashboard(
         )
         return
 
-    demo_source = data.get("demo_source")
+    dashboard = data.get("demo_config")
 
-    if demo_source is None:
+    if dashboard is None:
         connection.send_error(
             msg["id"],
-            "demo_source_missing",
-            "The Flex Horseshoe Card demo dashboard source is unavailable.",
-        )
-        return
-
-    options = data.get(
-        "demo_options",
-        {},
-    )
-
-    try:
-        dashboard = await hass.async_add_executor_job(
-            load_demo_dashboard,
-            demo_source,
-            options,
-        )
-    except (FileNotFoundError, HomeAssistantError, OSError) as err:
-        connection.send_error(
-            msg["id"],
-            "demo_load_failed",
-            str(err),
+            "demo_config_missing",
+            "The Flex Horseshoe Card demo dashboard is unavailable.",
         )
         return
 

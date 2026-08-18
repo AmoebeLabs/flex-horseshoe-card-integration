@@ -1,6 +1,9 @@
 """Flex Horseshoe Card integration."""
 
 from pathlib import Path
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 from homeassistant.components.frontend import (
     add_extra_js_url,
@@ -31,17 +34,22 @@ async def async_setup_entry(
     integration_path = Path(__file__).parent
     frontend_path = integration_path / "frontend"
 
+    _LOGGER.warning(
+        "FHS setup: integration_path=%s frontend_path=%s exists=%s",
+        integration_path,
+        frontend_path,
+        frontend_path.exists(),
+    )
+
     data = hass.data.setdefault(DOMAIN, {})
 
-    # Register the integration frontend directory once.
-    #
-    # /fhs/flex-horseshoe-card.js
-    # /fhs/fhs-demo-strategy.js
-    #
-    # map to:
-    #
-    # custom_components/flex_horseshoe_card/frontend/
     if not data.get("static_registered"):
+        _LOGGER.warning(
+            "FHS registering static path: %s -> %s",
+            FRONTEND_PATH,
+            frontend_path,
+        )
+
         await hass.http.async_register_static_paths(
             [
                 StaticPathConfig(
@@ -54,11 +62,15 @@ async def async_setup_entry(
 
         data["static_registered"] = True
 
-    # Store the current integration configuration for the
-    # demo dashboard WebSocket handler.
     data["demo_enabled"] = entry.options.get(
         CONF_DEMO_DASHBOARD,
         False,
+    )
+
+    _LOGGER.warning(
+        "FHS demo_enabled=%s entry.options=%s",
+        data["demo_enabled"],
+        dict(entry.options),
     )
 
     data["demo_options"] = dict(entry.options)
@@ -69,24 +81,47 @@ async def async_setup_entry(
         / DEMO_DASHBOARD_FILE
     )
 
-    # Register the demo dashboard WebSocket command once.
+    _LOGGER.warning(
+        "FHS demo source: %s exists=%s",
+        data["demo_source"],
+        data["demo_source"].exists(),
+    )
+
     if not data.get("websocket_registered"):
+        _LOGGER.warning("FHS registering demo websocket")
         async_register_demo_websocket(hass)
         data["websocket_registered"] = True
 
-    # Load FHS automatically in the Home Assistant frontend.
     frontend_url = f"{FRONTEND_PATH}/{FRONTEND_FILE}"
+
+    _LOGGER.warning(
+        "FHS loading frontend JS: %s file=%s exists=%s",
+        frontend_url,
+        frontend_path / FRONTEND_FILE,
+        (frontend_path / FRONTEND_FILE).exists(),
+    )
 
     add_extra_js_url(
         hass,
         frontend_url,
     )
 
-    # Only load/register the demo dashboard strategy when
-    # the demo dashboard has been enabled in the integration.
     strategy_url = f"{FRONTEND_PATH}/{DEMO_STRATEGY_FILE}"
 
+    _LOGGER.warning(
+        "FHS strategy: enabled=%s url=%s file=%s exists=%s",
+        data["demo_enabled"],
+        strategy_url,
+        frontend_path / DEMO_STRATEGY_FILE,
+        (frontend_path / DEMO_STRATEGY_FILE).exists(),
+    )
+
     if data["demo_enabled"]:
+        _LOGGER.warning(
+            "FHS loading demo strategy JS: %s",
+            strategy_url,
+        )
+
         add_extra_js_url(
             hass,
             strategy_url,
@@ -94,6 +129,7 @@ async def async_setup_entry(
 
         data["strategy_loaded"] = True
     else:
+        _LOGGER.warning("FHS demo strategy NOT loaded because demo_enabled=False")
         data["strategy_loaded"] = False
 
     return True

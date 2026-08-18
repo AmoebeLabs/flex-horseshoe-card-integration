@@ -14,7 +14,11 @@ from .const import (
     CONF_DEMO_DASHBOARD,
     CONF_TEMPERATURE_ENTITY,
     CONF_HUMIDITY_ENTITY,
-    CONF_POWER_ENTITY,
+    CONF_PRESSURE_ENTITY,
+    CONF_POWER_ENTITY_1,
+    CONF_POWER_ENTITY_2,
+    CONF_POWER_ENTITY_3,
+    CONF_POWER_ENTITY_4,
     CONF_BATTERY_ENTITY,
     CONF_SWITCH_ENTITY,
 )
@@ -58,7 +62,20 @@ DEMO_ENTITIES_SCHEMA = vol.Schema(
             }
         ),
 
-        vol.Optional(CONF_POWER_ENTITY): selector(
+        vol.Optional(CONF_PRESSURE_ENTITY): selector(
+            {
+                "entity": {
+                    "filter": [
+                        {
+                            "domain": "sensor",
+                            "device_class": "pressure",
+                        }
+                    ]
+                }
+            }
+        ),
+        
+        vol.Optional(CONF_POWER_ENTITY_1): selector(
             {
                 "entity": {
                     "filter": [
@@ -70,6 +87,46 @@ DEMO_ENTITIES_SCHEMA = vol.Schema(
                 }
             }
         ),
+
+        vol.Optional(CONF_POWER_ENTITY_2): selector(
+            {
+                "entity": {
+                    "filter": [
+                        {
+                            "domain": "sensor",
+                            "device_class": "power",
+                        }
+                    ]
+                }
+            }
+        ),
+
+        vol.Optional(CONF_POWER_ENTITY_3): selector(
+            {
+                "entity": {
+                    "filter": [
+                        {
+                            "domain": "sensor",
+                            "device_class": "power",
+                        }
+                    ]
+                }
+            }
+        ),
+
+        vol.Optional(CONF_POWER_ENTITY_4): selector(
+            {
+                "entity": {
+                    "filter": [
+                        {
+                            "domain": "sensor",
+                            "device_class": "power",
+                        }
+                    ]
+                }
+            }
+        ),
+
 
         vol.Optional(CONF_BATTERY_ENTITY): selector(
             {

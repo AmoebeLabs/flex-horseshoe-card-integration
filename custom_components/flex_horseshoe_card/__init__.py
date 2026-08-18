@@ -12,16 +12,14 @@ from homeassistant.core import HomeAssistant
 
 from .const import (
     CONF_DEMO_DASHBOARD,
+    DEMO_DASHBOARD_FILE,
     DEMO_SOURCE_DIR,
-    DEMO_TARGET_DIR,
+    DEMO_STRATEGY_FILE,
     DOMAIN,
     FRONTEND_FILE,
     FRONTEND_PATH,
 )
-from .demo import (
-    generate_demo,
-    remove_demo,
-)
+from .demo import async_register_demo_websocket
 
 
 async def async_setup_entry(
@@ -38,8 +36,11 @@ async def async_setup_entry(
     # Register the integration frontend directory once.
     #
     # /fhs/flex-horseshoe-card.js
-    # maps to:
-    # custom_components/flex_horseshoe_card/frontend/flex-horseshoe-card.js
+    # /fhs/fhs-demo-strategy.js
+    #
+    # map to:
+    #
+    # custom_components/flex_horseshoe_card/frontend/
     if not data.get("static_registered"):
         await hass.http.async_register_static_paths(
             [
@@ -53,6 +54,26 @@ async def async_setup_entry(
 
         data["static_registered"] = True
 
+    # Store the current integration configuration for the
+    # demo dashboard WebSocket handler.
+    data["demo_enabled"] = entry.options.get(
+        CONF_DEMO_DASHBOARD,
+        False,
+    )
+
+    data["demo_options"] = dict(entry.options)
+
+    data["demo_source"] = (
+        integration_path
+        / DEMO_SOURCE_DIR
+        / DEMO_DASHBOARD_FILE
+    )
+
+    # Register the demo dashboard WebSocket command once.
+    if not data.get("websocket_registered"):
+        async_register_demo_websocket(hass)
+        data["websocket_registered"] = True
+
     # Load FHS automatically in the Home Assistant frontend.
     frontend_url = f"{FRONTEND_PATH}/{FRONTEND_FILE}"
 
@@ -61,27 +82,19 @@ async def async_setup_entry(
         frontend_url,
     )
 
-    # Demo source delivered inside the integration ZIP.
-    demo_source = integration_path / DEMO_SOURCE_DIR
+    # Only load/register the demo dashboard strategy when
+    # the demo dashboard has been enabled in the integration.
+    strategy_url = f"{FRONTEND_PATH}/{DEMO_STRATEGY_FILE}"
 
-    # Generated demo dashboard under the Home Assistant config directory.
-    demo_target = Path(
-        hass.config.path(DEMO_TARGET_DIR)
-    )
-
-    # Generate or remove the demo depending on the integration option.
-    if entry.options.get(CONF_DEMO_DASHBOARD, False):
-        await hass.async_add_executor_job(
-            generate_demo,
-            demo_source,
-            demo_target,
-            dict(entry.options),
+    if data["demo_enabled"]:
+        add_extra_js_url(
+            hass,
+            strategy_url,
         )
+
+        data["strategy_loaded"] = True
     else:
-        await hass.async_add_executor_job(
-            remove_demo,
-            demo_target,
-        )
+        data["strategy_loaded"] = False
 
     return True
 
@@ -92,11 +105,27 @@ async def async_unload_entry(
 ) -> bool:
     """Unload Flex Horseshoe Card."""
 
+    data = hass.data.get(DOMAIN, {})
+
     frontend_url = f"{FRONTEND_PATH}/{FRONTEND_FILE}"
 
     remove_extra_js_url(
         hass,
         frontend_url,
     )
+
+    if data.get("strategy_loaded"):
+        strategy_url = f"{FRONTEND_PATH}/{DEMO_STRATEGY_FILE}"
+
+        remove_extra_js_url(
+            hass,
+            strategy_url,
+        )
+
+    # Keep the one-time registrations in hass.data, because
+    # Home Assistant can unload and reload a config entry.
+    data["demo_enabled"] = False
+    data["demo_options"] = {}
+    data["strategy_loaded"] = False
 
     return True

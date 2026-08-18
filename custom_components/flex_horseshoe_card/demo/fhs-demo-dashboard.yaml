@@ -5,4 +5,4 @@ title: FHS Demo Cards
 
 views:
   - !include views/view-horseshoes.yml
-  - !include views/view-electricity.yml
+  - !include views/view-sparklines.yml

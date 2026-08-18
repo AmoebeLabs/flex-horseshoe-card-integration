@@ -3,8 +3,6 @@
 from pathlib import Path
 import logging
 
-_LOGGER = logging.getLogger(__name__)
-
 from homeassistant.components.frontend import (
     add_extra_js_url,
     remove_extra_js_url,
@@ -22,7 +20,12 @@ from .const import (
     FRONTEND_FILE,
     FRONTEND_PATH,
 )
-from .demo import async_register_demo_websocket
+from .demo import (
+    async_load_demo_dashboard,
+    async_register_demo_websocket,
+)
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -34,22 +37,9 @@ async def async_setup_entry(
     integration_path = Path(__file__).parent
     frontend_path = integration_path / "frontend"
 
-    _LOGGER.warning(
-        "FHS setup: integration_path=%s frontend_path=%s exists=%s",
-        integration_path,
-        frontend_path,
-        frontend_path.exists(),
-    )
-
     data = hass.data.setdefault(DOMAIN, {})
 
     if not data.get("static_registered"):
-        _LOGGER.warning(
-            "FHS registering static path: %s -> %s",
-            FRONTEND_PATH,
-            frontend_path,
-        )
-
         await hass.http.async_register_static_paths(
             [
                 StaticPathConfig(
@@ -67,12 +57,6 @@ async def async_setup_entry(
         False,
     )
 
-    _LOGGER.warning(
-        "FHS demo_enabled=%s entry.options=%s",
-        data["demo_enabled"],
-        dict(entry.options),
-    )
-
     data["demo_options"] = dict(entry.options)
 
     data["demo_source"] = (
@@ -81,25 +65,22 @@ async def async_setup_entry(
         / DEMO_DASHBOARD_FILE
     )
 
-    _LOGGER.warning(
-        "FHS demo source: %s exists=%s",
-        data["demo_source"],
-        data["demo_source"].exists(),
-    )
+    # Load and parse the complete demo only once.
+    if data["demo_enabled"]:
+        data["demo_config"] = await async_load_demo_dashboard(
+            hass,
+            data["demo_source"],
+            data["demo_options"],
+        )
+    else:
+        data["demo_config"] = None
 
+    # WebSocket only returns the cached config.
     if not data.get("websocket_registered"):
-        _LOGGER.warning("FHS registering demo websocket")
         async_register_demo_websocket(hass)
         data["websocket_registered"] = True
 
     frontend_url = f"{FRONTEND_PATH}/{FRONTEND_FILE}"
-
-    _LOGGER.warning(
-        "FHS loading frontend JS: %s file=%s exists=%s",
-        frontend_url,
-        frontend_path / FRONTEND_FILE,
-        (frontend_path / FRONTEND_FILE).exists(),
-    )
 
     add_extra_js_url(
         hass,
@@ -108,20 +89,7 @@ async def async_setup_entry(
 
     strategy_url = f"{FRONTEND_PATH}/{DEMO_STRATEGY_FILE}"
 
-    _LOGGER.warning(
-        "FHS strategy: enabled=%s url=%s file=%s exists=%s",
-        data["demo_enabled"],
-        strategy_url,
-        frontend_path / DEMO_STRATEGY_FILE,
-        (frontend_path / DEMO_STRATEGY_FILE).exists(),
-    )
-
     if data["demo_enabled"]:
-        _LOGGER.warning(
-            "FHS loading demo strategy JS: %s",
-            strategy_url,
-        )
-
         add_extra_js_url(
             hass,
             strategy_url,
@@ -129,7 +97,6 @@ async def async_setup_entry(
 
         data["strategy_loaded"] = True
     else:
-        _LOGGER.warning("FHS demo strategy NOT loaded because demo_enabled=False")
         data["strategy_loaded"] = False
 
     return True
@@ -158,10 +125,9 @@ async def async_unload_entry(
             strategy_url,
         )
 
-    # Keep the one-time registrations in hass.data, because
-    # Home Assistant can unload and reload a config entry.
     data["demo_enabled"] = False
     data["demo_options"] = {}
+    data["demo_config"] = None
     data["strategy_loaded"] = False
 
     return True

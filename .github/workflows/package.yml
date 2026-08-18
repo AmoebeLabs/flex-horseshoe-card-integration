@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: FHS tag, bijvoorbeeld v5.4.7-dev.26
+        description: FHS tag, for example v5.4.7-dev.26
         required: true
 
 permissions:
@@ -15,11 +15,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout integration wrapper
+      # ------------------------------------------------------------
+      # Checkout the integration repository.
+      # ------------------------------------------------------------
+      - name: Checkout integration
         uses: actions/checkout@v5
         with:
           path: integration
 
+      # ------------------------------------------------------------
+      # Checkout the exact FHS version that must be packaged.
+      # ------------------------------------------------------------
       - name: Checkout FHS
         uses: actions/checkout@v5
         with:
@@ -27,11 +33,34 @@ jobs:
           ref: ${{ inputs.version }}
           path: fhs
 
+      # ------------------------------------------------------------
+      # Determine the two independent versions.
+      #
+      # FHS version:
+      #   fhs/package.json
+      #
+      # Integration version:
+      #   integration/custom_components/flex_horseshoe_card/manifest.json
+      #
+      # Example:
+      #
+      #   FHS:          5.4.7-dev.26
+      #   Integration:  1.1.0
+      #
+      # Package:
+      #   5.4.7-dev.26.--iv.1.1.0
+      #
+      # Release tag:
+      #   v5.4.7-dev.26.--iv.1.1.0
+      # ------------------------------------------------------------
       - name: Determine package version
         shell: bash
         run: |
           FHS_VERSION=$(jq -r '.version' fhs/package.json)
-          INTEGRATION_VERSION=$(jq -r '.version' integration/custom_components/flex_horseshoe_card/manifest.json)
+
+          INTEGRATION_VERSION=$(jq -r \
+            '.version' \
+            integration/custom_components/flex_horseshoe_card/manifest.json)
 
           PACKAGE_VERSION="${FHS_VERSION}.--iv.${INTEGRATION_VERSION}"
 
@@ -39,37 +68,109 @@ jobs:
           echo "Integration version: ${INTEGRATION_VERSION}"
           echo "Package version:     ${PACKAGE_VERSION}"
 
+          echo "FHS_VERSION=${FHS_VERSION}" >> "$GITHUB_ENV"
+          echo "INTEGRATION_VERSION=${INTEGRATION_VERSION}" >> "$GITHUB_ENV"
           echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> "$GITHUB_ENV"
 
+      # ------------------------------------------------------------
+      # Create the HACS integration package.
+      #
+      # Integration repository:
+      #
+      #   custom_components/flex_horseshoe_card/
+      #       __init__.py
+      #       config_flow.py
+      #       const.py
+      #       demo.py
+      #       manifest.json
+      #       frontend/
+      #           fhs-demo-strategy.js
+      #       ...
+      #
+      #   demo/
+      #       fhs-demo-dashboard.yaml
+      #       views/
+      #           ...
+      #
+      # FHS repository contributes ONLY:
+      #
+      #   dist/flex-horseshoe-card.js
+      #
+      # Resulting ZIP root:
+      #
+      #   __init__.py
+      #   config_flow.py
+      #   const.py
+      #   demo.py
+      #   manifest.json
+      #   frontend/
+      #       fhs-demo-strategy.js
+      #       flex-horseshoe-card.js
+      #   demo/
+      #       fhs-demo-dashboard.yaml
+      #       views/
+      #           ...
+      #   ...
+      # ------------------------------------------------------------
       - name: Create package
         shell: bash
         run: |
-          mkdir package
+          rm -rf package
+          mkdir -p package
 
-          # Integration wrapper.
-          cp -R integration/custom_components/flex_horseshoe_card/. package/
+          # Complete Home Assistant integration.
+          cp -R \
+            integration/custom_components/flex_horseshoe_card/. \
+            package/
 
-          # FHS frontend.
-          mkdir -p package/frontend
-          cp fhs/dist/flex-horseshoe-card.js package/frontend/
-
-          # FHS demo dashboard sources.
+          # Demo dashboard YAML belongs to the integration repository.
           mkdir -p package/demo
-          cp -R fhs/demo/. package/demo/
 
-          # The source manifest keeps the real integration version.
-          # Only the packaged manifest gets the combined release version.
+          cp -R \
+            integration/demo/. \
+            package/demo/
+
+          # The actual FHS card comes from the selected FHS release.
+          mkdir -p package/frontend
+
+          cp \
+            fhs/dist/flex-horseshoe-card.js \
+            package/frontend/flex-horseshoe-card.js
+
+          # Keep the source manifest version as the independent
+          # integration version in Git.
+          #
+          # Only the manifest shipped inside this package gets the
+          # combined FHS + integration package version.
           jq \
             --arg version "${PACKAGE_VERSION}" \
             '.version = $version' \
             package/manifest.json \
             > package/manifest.tmp.json
 
-          mv package/manifest.tmp.json package/manifest.json
+          mv \
+            package/manifest.tmp.json \
+            package/manifest.json
 
+          # Show exactly what will be packaged.
+          echo
+          echo "Package contents:"
+          find package -type f | sort
+
+          echo
+          echo "Packaged manifest version:"
+          jq -r '.version' package/manifest.json
+
+          # HACS zip_release expects the integration files at ZIP root.
           cd package
           zip -r ../flex-horseshoe-card.zip .
 
+      # ------------------------------------------------------------
+      # Create the GitHub release.
+      #
+      # Example:
+      #   v5.4.7-dev.26.--iv.1.1.0
+      # ------------------------------------------------------------
       - name: Create integration release
         env:
           GH_TOKEN: ${{ github.token }}

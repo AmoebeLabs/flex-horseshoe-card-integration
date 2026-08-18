@@ -15,17 +15,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ------------------------------------------------------------
-      # Checkout the integration repository.
-      # ------------------------------------------------------------
       - name: Checkout integration
         uses: actions/checkout@v5
         with:
           path: integration
 
-      # ------------------------------------------------------------
-      # Checkout the exact FHS version that must be packaged.
-      # ------------------------------------------------------------
       - name: Checkout FHS
         uses: actions/checkout@v5
         with:
@@ -33,26 +27,6 @@ jobs:
           ref: ${{ inputs.version }}
           path: fhs
 
-      # ------------------------------------------------------------
-      # Determine the two independent versions.
-      #
-      # FHS version:
-      #   fhs/package.json
-      #
-      # Integration version:
-      #   integration/custom_components/flex_horseshoe_card/manifest.json
-      #
-      # Example:
-      #
-      #   FHS:          5.4.7-dev.26
-      #   Integration:  1.1.0
-      #
-      # Package:
-      #   5.4.7-dev.26.--iv.1.1.0
-      #
-      # Release tag:
-      #   v5.4.7-dev.26.--iv.1.1.0
-      # ------------------------------------------------------------
       - name: Determine package version
         shell: bash
         run: |
@@ -72,76 +46,37 @@ jobs:
           echo "INTEGRATION_VERSION=${INTEGRATION_VERSION}" >> "$GITHUB_ENV"
           echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> "$GITHUB_ENV"
 
-      # ------------------------------------------------------------
-      # Create the HACS integration package.
-      #
-      # Integration repository:
-      #
-      #   custom_components/flex_horseshoe_card/
-      #       __init__.py
-      #       config_flow.py
-      #       const.py
-      #       demo.py
-      #       manifest.json
-      #       frontend/
-      #           fhs-demo-strategy.js
-      #       ...
-      #
-      #   demo/
-      #       fhs-demo-dashboard.yaml
-      #       views/
-      #           ...
-      #
-      # FHS repository contributes ONLY:
-      #
-      #   dist/flex-horseshoe-card.js
-      #
-      # Resulting ZIP root:
-      #
-      #   __init__.py
-      #   config_flow.py
-      #   const.py
-      #   demo.py
-      #   manifest.json
-      #   frontend/
-      #       fhs-demo-strategy.js
-      #       flex-horseshoe-card.js
-      #   demo/
-      #       fhs-demo-dashboard.yaml
-      #       views/
-      #           ...
-      #   ...
-      # ------------------------------------------------------------
       - name: Create package
         shell: bash
         run: |
           rm -rf package
           mkdir -p package
 
-          # Complete Home Assistant integration.
+          # Copy the complete integration.
+          #
+          # This already includes:
+          #   demo/
+          #   frontend/
+          #   system/
+          #   translations/
+          #   __init__.py
+          #   config_flow.py
+          #   const.py
+          #   demo.py
+          #   manifest.json
           cp -R \
             integration/custom_components/flex_horseshoe_card/. \
             package/
 
-          # Demo dashboard YAML belongs to the integration repository.
-          mkdir -p package/demo
-
-          cp -R \
-            integration/demo/. \
-            package/demo/
-
-          # The actual FHS card comes from the selected FHS release.
+          # Add the actual FHS JavaScript from the selected FHS release.
           mkdir -p package/frontend
 
           cp \
             fhs/dist/flex-horseshoe-card.js \
             package/frontend/flex-horseshoe-card.js
 
-          # Keep the source manifest version as the independent
-          # integration version in Git.
-          #
-          # Only the manifest shipped inside this package gets the
-          # combined FHS + integration package version.
+          # Change only the manifest inside the release package.
+          # The source manifest keeps the independent integration version.
           jq \
             --arg version "${PACKAGE_VERSION}" \
             '.version = $version' \
@@ -152,7 +87,6 @@ jobs:
             package/manifest.tmp.json \
             package/manifest.json
 
-          # Show exactly what will be packaged.
           echo
           echo "Package contents:"
           find package -type f | sort
@@ -161,16 +95,9 @@ jobs:
           echo "Packaged manifest version:"
           jq -r '.version' package/manifest.json
 
-          # HACS zip_release expects the integration files at ZIP root.
           cd package
           zip -r ../flex-horseshoe-card.zip .
 
-      # ------------------------------------------------------------
-      # Create the GitHub release.
-      #
-      # Example:
-      #   v5.4.7-dev.26.--iv.1.1.0
-      # ------------------------------------------------------------
       - name: Create integration release
         env:
           GH_TOKEN: ${{ github.token }}

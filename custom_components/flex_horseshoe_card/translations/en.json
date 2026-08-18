@@ -2,41 +2,31 @@
   "config": {
     "step": {
       "user": {
-        "title": "Flex Horseshoe Card",
-        "description": "Configure the optional FHS demo dashboard.",
+        "title": "Flexible Horseshoe Card (Integration)",
+        "description": "Set up the Flexible Horseshoe Card for Home Assistant. You can optionally enable the included demo dashboard to explore FHS using entities from your own system.",
         "data": {
-          "demo_dashboard": "Create FHS demo dashboard"
+          "demo_dashboard": "Enable demo dashboard"
+        },
+        "data_description": {
+          "demo_dashboard": "Makes a community dashboard with example Flexible Horseshoe Card configurations. The dashboard can be added in Settings -> Dashboards -> Add Dashboard, 'Community Dashboards'"
         }
       },
       "demo_entities": {
-        "title": "Demo entities",
-        "description": "Select existing Home Assistant entities for the FHS examples.",
+        "title": "Demo dashboard entities",
+        "description": "Choose Home Assistant entities for the community dashboard. All fields are optional. Examples that do not have a matching entity are disabled.",
         "data": {
-          "temperature_entity": "Temperature",
-          "humidity_entity": "Humidity",
-          "energy_entity": "Energy (kWh)",
-          "battery_entity": "Battery",
+          "temperature_entity": "Temperature sensor",
+          "humidity_entity": "Humidity sensor",
+          "energy_entity": "Energy sensor",
+          "battery_entity": "Battery sensor",
           "switch_entity": "Switch or light"
-        }
-      }
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "FHS demo dashboard",
-        "data": {
-          "demo_dashboard": "Create FHS demo dashboard"
-        }
-      },
-      "demo_entities": {
-        "title": "Demo entities",
-        "data": {
-          "temperature_entity": "Temperature",
-          "humidity_entity": "Humidity",
-          "energy_entity": "Energy (kWh)",
-          "battery_entity": "Battery",
-          "switch_entity": "Switch or light"
+        },
+        "data_description": {
+          "temperature_entity": "Used by temperature and history examples.",
+          "humidity_entity": "Used by humidity and history examples.",
+          "energy_entity": "Used by energy-related examples.",
+          "battery_entity": "Used by battery examples.",
+          "switch_entity": "Used by interactive switch and light examples."
         }
       }
     }

@@ -14,7 +14,7 @@ from .const import (
     CONF_DEMO_DASHBOARD,
     CONF_TEMPERATURE_ENTITY,
     CONF_HUMIDITY_ENTITY,
-    CONF_ENERGY_ENTITY,
+    CONF_POWER_ENTITY,
     CONF_BATTERY_ENTITY,
     CONF_SWITCH_ENTITY,
 )
@@ -58,13 +58,13 @@ DEMO_ENTITIES_SCHEMA = vol.Schema(
             }
         ),
 
-        vol.Optional(CONF_ENERGY_ENTITY): selector(
+        vol.Optional(CONF_POWER_ENTITY): selector(
             {
                 "entity": {
                     "filter": [
                         {
                             "domain": "sensor",
-                            "device_class": "energy",
+                            "device_class": "power",
                         }
                     ]
                 }
@@ -141,13 +141,13 @@ class FlexHorseshoeCardConfigFlow(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """Select entities used by the demo dashboard."""
+        """Select entities used by the community demo dashboard."""
 
         if user_input is not None:
             self._options.update(user_input)
 
             return self.async_create_entry(
-                title="Flex Horseshoe Card",
+                title="Flexible Horseshoe Card",
                 data={},
                 options=self._options,
             )

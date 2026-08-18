@@ -1,7 +1,6 @@
 """Flex Horseshoe Card integration."""
 
 from pathlib import Path
-import logging
 
 from homeassistant.components.frontend import (
     add_extra_js_url,
@@ -21,11 +20,9 @@ from .const import (
     FRONTEND_PATH,
 )
 from .demo import (
-    async_load_demo_dashboard,
+    load_demo_dashboard,
     async_register_demo_websocket,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -39,6 +36,7 @@ async def async_setup_entry(
 
     data = hass.data.setdefault(DOMAIN, {})
 
+    # Register the integration frontend directory once.
     if not data.get("static_registered"):
         await hass.http.async_register_static_paths(
             [
@@ -52,6 +50,7 @@ async def async_setup_entry(
 
         data["static_registered"] = True
 
+    # Store integration configuration.
     data["demo_enabled"] = entry.options.get(
         CONF_DEMO_DASHBOARD,
         False,
@@ -65,21 +64,25 @@ async def async_setup_entry(
         / DEMO_DASHBOARD_FILE
     )
 
-    # Load and parse the complete demo only once.
+    # Load and parse the complete demo dashboard once.
+    #
+    # YAML file access and include processing are blocking,
+    # so run the synchronous loader in Home Assistant's executor.
     if data["demo_enabled"]:
-        data["demo_config"] = await async_load_demo_dashboard(
-            hass,
+        data["demo_config"] = await hass.async_add_executor_job(
+            load_demo_dashboard,
             data["demo_source"],
             data["demo_options"],
         )
     else:
         data["demo_config"] = None
 
-    # WebSocket only returns the cached config.
+    # Register the demo dashboard WebSocket command once.
     if not data.get("websocket_registered"):
         async_register_demo_websocket(hass)
         data["websocket_registered"] = True
 
+    # Load FHS automatically in the Home Assistant frontend.
     frontend_url = f"{FRONTEND_PATH}/{FRONTEND_FILE}"
 
     add_extra_js_url(
@@ -87,6 +90,8 @@ async def async_setup_entry(
         frontend_url,
     )
 
+    # Only load/register the demo dashboard strategy when
+    # the demo dashboard has been enabled.
     strategy_url = f"{FRONTEND_PATH}/{DEMO_STRATEGY_FILE}"
 
     if data["demo_enabled"]:
